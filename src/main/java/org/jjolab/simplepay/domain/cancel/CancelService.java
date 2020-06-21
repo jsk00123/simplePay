@@ -6,12 +6,12 @@ import org.jjolab.simplepay.domain.cardPostInfo.CardPostInfo;
 import org.jjolab.simplepay.domain.cardPostInfo.CardPostInfoRepository;
 import org.jjolab.simplepay.domain.common.PaymentType;
 import org.jjolab.simplepay.domain.common.StaticValues;
+import org.jjolab.simplepay.utils.CommonUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -28,14 +28,17 @@ public class CancelService {
             return;
         }
 
-        cancelPaymentInfo.put(cancelRequestDto.getUuid(), cancelRequestDto.getUuid());
-        cancelWithValidation(cancelRequestDto, uuid, cancelResponseDto);
-        cancelPaymentInfo.remove(cancelRequestDto.getUuid());
+        try {
+            cancelPaymentInfo.put(cancelRequestDto.getUuid(), cancelRequestDto.getUuid());
+            cancelWithValidation(cancelRequestDto, uuid, cancelResponseDto);
+        } finally {
+            cancelPaymentInfo.remove(cancelRequestDto.getUuid());
+        }
     }
 
     private void cancelWithValidation(CancelRequestDto cancelRequestDto, String uuid, CancelResponseDto cancelResponseDto) throws Exception {
         CardPostInfo cardPostInfo = cardPostInfoRepository.findByUuid(cancelRequestDto.getUuid());
-        if (!Optional.ofNullable(cardPostInfo).isPresent()) {
+        if (CommonUtil.isEmpty(cardPostInfo)) {
             cancelResponseDto.getErrorMessages().add(StaticValues.PAYMENTINFO_NOT_FOUND);
             return;
         }
@@ -46,44 +49,65 @@ public class CancelService {
         CardPostDto.DataInfo dataInfo = cardPostDto.getDataInfo();
 
         List<CardPostInfo> allByOriginUuid = cardPostInfoRepository.findAllByOriginUuid(cardPostInfo.getUuid());
+        Long cancelAmountSum = getAllCancelAmount(allByOriginUuid);
+        Long vatAmountSum = getAllVatAmount(allByOriginUuid);
 
-        Long cancelAmountSum = allByOriginUuid.stream()
-                .map(each -> Long.parseLong(each.getPostInfo().substring(63, 73).trim()))
-                .reduce(0L, Long::sum);
+        setVatAmountWithCondition(cancelRequestDto, dataInfo, cancelAmountSum, vatAmountSum);
 
-        if (cancelAmountSum + cancelRequestDto.getCancelAmount() > dataInfo.getAmount()) {
-            cancelResponseDto.getErrorMessages().add(StaticValues.CANCEL_AMOUNT_BIGGER_THAN_PAYMENT_AMOUNT);
+        if (checkValidation(cancelRequestDto, cancelResponseDto, dataInfo, cancelAmountSum, vatAmountSum)) {
             return;
         }
 
-        Long vatAmountSum = allByOriginUuid.stream()
+        setDataAndSave(cancelRequestDto, uuid, cancelResponseDto, cardPostDto, commonHeader, dataInfo);
+    }
+
+    private Long getAllCancelAmount(List<CardPostInfo> allByOriginUuid) {
+        return allByOriginUuid.stream()
+                .map(each -> Long.parseLong(each.getPostInfo().substring(63, 73).trim()))
+                .reduce(0L, Long::sum);
+    }
+
+    private Long getAllVatAmount(List<CardPostInfo> allByOriginUuid) {
+        return allByOriginUuid.stream()
                 .map(each -> Long.parseLong(each.getPostInfo().substring(73, 83).trim()))
                 .reduce(0L, Long::sum);
+    }
 
-        if (!Optional.ofNullable(cancelRequestDto.getVat()).isPresent()
+    private void setVatAmountWithCondition(CancelRequestDto cancelRequestDto, CardPostDto.DataInfo dataInfo, Long cancelAmountSum, Long vatAmountSum) {
+        if (CommonUtil.isEmpty(cancelRequestDto.getVat())
                 && cancelAmountSum + cancelRequestDto.getCancelAmount() == dataInfo.getAmount()) {
             cancelRequestDto.setVat(dataInfo.getVat() - vatAmountSum);
-        } else if (!Optional.ofNullable(cancelRequestDto.getVat()).isPresent()) {
+        } else if (CommonUtil.isEmpty(cancelRequestDto.getVat())) {
             cancelRequestDto.setVat(Math.round((double) cancelRequestDto.getCancelAmount() / 11));
+        }
+    }
+
+    private boolean checkValidation(CancelRequestDto cancelRequestDto, CancelResponseDto cancelResponseDto, CardPostDto.DataInfo dataInfo, Long cancelAmountSum, Long vatAmountSum) {
+        if (cancelAmountSum + cancelRequestDto.getCancelAmount() > dataInfo.getAmount()) {
+            cancelResponseDto.getErrorMessages().add(StaticValues.CANCEL_AMOUNT_BIGGER_THAN_PAYMENT_AMOUNT);
+            return true;
         }
 
         if (vatAmountSum + cancelRequestDto.getVat() > dataInfo.getVat()) {
             cancelResponseDto.getErrorMessages().add(StaticValues.CANCEL_VAT_BIGGER_THAN_PAYMENT_VAT);
-            return;
+            return true;
         }
 
         if ((cancelAmountSum + cancelRequestDto.getCancelAmount() == dataInfo.getAmount()) &&
                 (vatAmountSum + cancelRequestDto.getVat() != dataInfo.getVat())) {
             cancelResponseDto.getErrorMessages().add(StaticValues.REMAIN_VAT_AFTER_ALL_CANCEL_AMOUNT);
-            return;
+            return true;
         }
 
         if ((cancelAmountSum + cancelRequestDto.getCancelAmount() != dataInfo.getAmount()) &&
                 (vatAmountSum + cancelRequestDto.getVat() == dataInfo.getVat())) {
             cancelResponseDto.getErrorMessages().add(StaticValues.REMAIN_CANCEL_AMOUNT_ALL_CANCEL_VAT);
-            return;
+            return true;
         }
+        return false;
+    }
 
+    private void setDataAndSave(CancelRequestDto cancelRequestDto, String uuid, CancelResponseDto cancelResponseDto, CardPostDto cardPostDto, CardPostDto.CommonHeader commonHeader, CardPostDto.DataInfo dataInfo) {
         commonHeader.setPaymentType(PaymentType.CANCEL);
         String originUuid = commonHeader.getUuid();
         commonHeader.setUuid(uuid);

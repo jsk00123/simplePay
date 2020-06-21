@@ -6,6 +6,7 @@ import org.jjolab.simplepay.domain.cardPostInfo.CardPostInfo;
 import org.jjolab.simplepay.domain.cardPostInfo.CardPostInfoRepository;
 import org.jjolab.simplepay.domain.common.PaymentType;
 import org.jjolab.simplepay.domain.common.StaticValues;
+import org.jjolab.simplepay.utils.CommonUtil;
 import org.jjolab.simplepay.utils.CryptoUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -28,13 +29,17 @@ public class PaymentService {
             return;
         }
 
-        paymentCardInfo.put(paymentRequestDto.getCdno(), paymentRequestDto.getCdno());
-        paymentWithValidation(paymentRequestDto, uuid, paymentResponseDto);
-        paymentCardInfo.remove(paymentRequestDto.getCdno());
+        try {
+            paymentCardInfo.put(paymentRequestDto.getCdno(), paymentRequestDto.getCdno());
+            paymentWithValidation(paymentRequestDto, uuid, paymentResponseDto);
+        } finally {
+            paymentCardInfo.remove(paymentRequestDto.getCdno());
+        }
     }
 
     private void paymentWithValidation(PaymentRequestDto paymentRequestDto, String uuid, PaymentResponseDto paymentResponseDto) throws Exception {
-        if (paymentRequestDto.getVat() != null && paymentRequestDto.getPaymentAmount() < paymentRequestDto.getVat()) {
+        if (!CommonUtil.isEmpty(paymentRequestDto.getVat())
+                && paymentRequestDto.getPaymentAmount() < paymentRequestDto.getVat()) {
             paymentResponseDto.getErrorMessages().add(StaticValues.VAT_BIGGER_AMOUNT_ERROR);
             return;
         }

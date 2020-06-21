@@ -23,13 +23,19 @@ public class CardPostDto {
 
     public void setDtoByEntity(CardPostInfo cardPostInfo) throws Exception {
         String postInfo = cardPostInfo.getPostInfo();
+        setCommonHeader(postInfo);
+        setDataInfo(postInfo);
+    }
 
+    private void setCommonHeader(String postInfo) {
         CommonHeader commonHeader = this.getCommonHeader();
 
         commonHeader.setDataLen(Integer.parseInt(postInfo.substring(0, 4).trim()));
         commonHeader.setPaymentType(PaymentType.valueOf(postInfo.substring(4, 14).trim()));
         commonHeader.setUuid(postInfo.substring(14, 34).trim());
+    }
 
+    private void setDataInfo(String postInfo) throws Exception {
         DataInfo dataInfo = this.getDataInfo();
 
         String decrypted = CryptoUtil.decryptAES256(postInfo.substring(103, 403).trim(), "key");

@@ -20,11 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.lang.management.ThreadInfo;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
