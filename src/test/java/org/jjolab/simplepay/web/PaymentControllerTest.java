@@ -5,6 +5,7 @@ import org.jjolab.simplepay.domain.cancel.CancelRequestDto;
 import org.jjolab.simplepay.domain.cancel.CancelResponseDto;
 import org.jjolab.simplepay.domain.cancel.CancelService;
 import org.jjolab.simplepay.domain.cardPostInfo.CardPostInfoRepository;
+import org.jjolab.simplepay.domain.common.StaticValues;
 import org.jjolab.simplepay.domain.payment.PaymentRequestDto;
 import org.jjolab.simplepay.domain.payment.PaymentResponseDto;
 import org.jjolab.simplepay.domain.payment.PaymentService;
@@ -101,7 +102,7 @@ public class PaymentControllerTest {
                 .content(objectMapper.writeValueAsString(cancelRequestDto)))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8), CancelResponseDto.class);
 
-        Assert.assertEquals("총 취소 금액이 결제 금액 보다 많습니다.", cancelResponseDto.getErrorMessages().get(0));
+        Assert.assertEquals(StaticValues.CANCEL_AMOUNT_BIGGER_THAN_PAYMENT_AMOUNT, cancelResponseDto.getErrorMessages().get(0));
 
         cancelRequestDto.setCancelAmount(6600L);
         cancelRequestDto.setVat(700L);
@@ -111,7 +112,7 @@ public class PaymentControllerTest {
                 .content(objectMapper.writeValueAsString(cancelRequestDto)))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8), CancelResponseDto.class);
 
-        Assert.assertEquals("총 취소 부가세 금액이 총 부가세 보다 많습니다.", cancelResponseDto.getErrorMessages().get(0));
+        Assert.assertEquals(StaticValues.CANCEL_VAT_BIGGER_THAN_PAYMENT_VAT, cancelResponseDto.getErrorMessages().get(0));
 
         cancelRequestDto.setCancelAmount(6600L);
         cancelRequestDto.setVat(600L);
@@ -131,7 +132,7 @@ public class PaymentControllerTest {
                 .content(objectMapper.writeValueAsString(cancelRequestDto)))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8), CancelResponseDto.class);
 
-        Assert.assertEquals("총 취소 금액이 결제 금액 보다 많습니다.", cancelResponseDto.getErrorMessages().get(0));
+        Assert.assertEquals(StaticValues.CANCEL_AMOUNT_BIGGER_THAN_PAYMENT_AMOUNT, cancelResponseDto.getErrorMessages().get(0));
     }
 
     @Test
@@ -165,7 +166,7 @@ public class PaymentControllerTest {
                 .content(objectMapper.writeValueAsString(cancelRequestDto)))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8), CancelResponseDto.class);
 
-        Assert.assertEquals("취소 금액은 모두 취소 되었으나 부가세가 남았습니다.", cancelResponseDto.getErrorMessages().get(0));
+        Assert.assertEquals(StaticValues.REMAIN_VAT_AFTER_ALL_CANCEL_AMOUNT, cancelResponseDto.getErrorMessages().get(0));
 
         cancelRequestDto.setCancelAmount(10000L);
         cancelRequestDto.setVat(909L);
@@ -209,7 +210,7 @@ public class PaymentControllerTest {
                 .content(objectMapper.writeValueAsString(cancelRequestDto)))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8), CancelResponseDto.class);
 
-        Assert.assertEquals("총 취소 부가세 금액이 총 부가세 보다 많습니다.", cancelResponseDto.getErrorMessages().get(0));
+        Assert.assertEquals(StaticValues.CANCEL_VAT_BIGGER_THAN_PAYMENT_VAT, cancelResponseDto.getErrorMessages().get(0));
 
         cancelRequestDto.setCancelAmount(10000L);
         cancelRequestDto.setVat(null);

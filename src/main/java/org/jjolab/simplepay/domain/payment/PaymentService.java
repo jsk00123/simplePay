@@ -55,7 +55,7 @@ public class PaymentService {
     private CardPostDto setCardPostInfo(PaymentRequestDto paymentRequestDto, String uuid) throws Exception {
         CardPostDto cardPostDto = new CardPostDto();
         CardPostDto.CommonHeader commonHeader = cardPostDto.getCommonHeader();
-        commonHeader.setDataLen(446);
+        commonHeader.setDataLen(StaticValues.DATA_LEN);
         commonHeader.setPaymentType(PaymentType.PAYMENT);
         commonHeader.setUuid(uuid);
 
@@ -73,7 +73,7 @@ public class PaymentService {
                 CryptoUtil.encryptAES256(paymentRequestDto.getCdno() + "|"
                                 + paymentRequestDto.getExpiredDate() + "|"
                                 + paymentRequestDto.getCvc()
-                        , "key"));
+                        , StaticValues.CRYPTO_KEY));
         dataInfo.setReservedField(String.format("%47s", ""));
 
         return cardPostDto;

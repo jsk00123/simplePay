@@ -1,6 +1,10 @@
 package org.jjolab.simplepay.domain.common;
 
 public class StaticValues {
+    public static final int DATA_LEN = 446;
+
+    public static final String CRYPTO_KEY = "key";
+
     public static final String ALREADY_CDNO_USE = "카드번호가 결제에 사용중 입니다.";
     public static final String VAT_BIGGER_AMOUNT_ERROR = "부가가치세는 결제 금액 보다 클 수 없습니다.";
     public static final String UUID_NOT_FOUND = "uuid 에 해당하는 정보를 찾을 수 없습니다.";

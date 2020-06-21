@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jjolab.simplepay.domain.common.PaymentType;
+import org.jjolab.simplepay.domain.common.StaticValues;
 import org.jjolab.simplepay.utils.CryptoUtil;
 
 @Getter
@@ -38,7 +39,7 @@ public class CardPostDto {
     private void setDataInfo(String postInfo) throws Exception {
         DataInfo dataInfo = this.getDataInfo();
 
-        String decrypted = CryptoUtil.decryptAES256(postInfo.substring(103, 403).trim(), "key");
+        String decrypted = CryptoUtil.decryptAES256(postInfo.substring(103, 403).trim(), StaticValues.CRYPTO_KEY);
         String[] decryptedCardInfo = decrypted.split("\\|");
 
         dataInfo.setCdno(decryptedCardInfo[0]);
