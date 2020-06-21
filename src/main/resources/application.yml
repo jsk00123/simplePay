@@ -1,0 +1,16 @@
+spring:
+  profiles:
+    active: local
+
+  datasource:
+    platform: h2
+    driver-class-name: org.h2.Driver
+    jdbcUrl: jdbc:h2:tcp://localhost:9092/mem:simplepay
+    username: simplepayuser
+    password: simplepaypass
+
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
