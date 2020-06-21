@@ -1,5 +1,5 @@
 # simplePay
-kakao pay 전형 사전 과제
+simple pay
 
 ## 기능
 - 결제요청
