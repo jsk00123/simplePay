@@ -35,9 +35,8 @@ postInfo   | 카드사에 전송하는 데이터
 - 호출에 사용되는 값들이 url 에 노출되지 않게 post 사용
 - @Valid 사용으로 입력값 검증
 - 각 기능을 도메인으로 나뉘어 서비스 레이어를 총 3개로 나누어 개발
-- 공통으로 사용되는 util 들은 utils 안에 작성
-- 문구나 상수 값은 StaticValues 에 static 변수로 관리
-- 중복된 코드를 제거하기 위해 코드 리팩토링 수행
+- 공통으로 사용되는 util 들은 utils 패키지 아래에 작성
+- 문구나 상수 값은 StaticValues 클래스에 static 변수로 관리
 - api 수행에 대한 에러 원인을 기술하기 위해 응답 dto 안에 errorMessage 기술
 - 멀티스레드 환경에 대비하기 위해 concurrentHashMap 사용
   1. 결제요청에 대해서 같은 카드번호로 결제가 수행 중인지 확인 하기 위해 paymentCardInfo 캐시를 두어 결제중 확인
