@@ -23,7 +23,12 @@ kakao pay 전형 사전 과제
 ## 테이블설계
 - 카드 정보 저장 테이블
     - card_post_info 테이블 생성
-    - uuid, originUuid, postInfo
+
+columnName | 설명
+-----------|------------------------
+uuid       | 유니크 ID
+originUuid | 취소 시에 원결제의 유니크 ID
+postInfo   | 카드사에 전송하는 데이터
     
 ## 문제해결 전략
 - 멀티스레드 환경에 대비하기 위해 concurrentHashMap 을 통해 중복요청 방지
