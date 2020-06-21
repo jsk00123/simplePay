@@ -5,6 +5,7 @@ import org.jjolab.simplepay.domain.cardPostInfo.CardPostDto;
 import org.jjolab.simplepay.domain.cardPostInfo.CardPostInfo;
 import org.jjolab.simplepay.domain.cardPostInfo.CardPostInfoRepository;
 import org.jjolab.simplepay.domain.common.PaymentType;
+import org.jjolab.simplepay.domain.common.StaticValues;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,7 @@ public class CancelService {
     @Transactional
     public void cancel(CancelRequestDto cancelRequestDto, String uuid, CancelResponseDto cancelResponseDto) throws Exception {
         if (cancelPaymentInfo.contains(cancelRequestDto.getUuid())) {
-            cancelResponseDto.getErrorMessages().add("현재 원 결제에 대한 취소건이 진행중 입니다.");
+            cancelResponseDto.getErrorMessages().add(StaticValues.ALREADY_PAYMENT_CANCELING);
             return;
         }
 
@@ -35,7 +36,7 @@ public class CancelService {
     private void cancelWithValidation(CancelRequestDto cancelRequestDto, String uuid, CancelResponseDto cancelResponseDto) throws Exception {
         CardPostInfo cardPostInfo = cardPostInfoRepository.findByUuid(cancelRequestDto.getUuid());
         if (!Optional.ofNullable(cardPostInfo).isPresent()) {
-            cancelResponseDto.getErrorMessages().add("결제 정보를 찾을 수 없습니다.");
+            cancelResponseDto.getErrorMessages().add(StaticValues.PAYMENTINFO_NOT_FOUND);
             return;
         }
 
@@ -51,7 +52,7 @@ public class CancelService {
                 .reduce(0L, Long::sum);
 
         if (cancelAmountSum + cancelRequestDto.getCancelAmount() > dataInfo.getAmount()) {
-            cancelResponseDto.getErrorMessages().add("총 취소 금액이 결제 금액 보다 많습니다.");
+            cancelResponseDto.getErrorMessages().add(StaticValues.CANCEL_AMOUNT_BIGGER_THAN_PAYMENT_AMOUNT);
             return;
         }
 
@@ -67,19 +68,19 @@ public class CancelService {
         }
 
         if (vatAmountSum + cancelRequestDto.getVat() > dataInfo.getVat()) {
-            cancelResponseDto.getErrorMessages().add("총 취소 부가세 금액이 총 부가세 보다 많습니다.");
+            cancelResponseDto.getErrorMessages().add(StaticValues.CANCEL_VAT_BIGGER_THAN_PAYMENT_VAT);
             return;
         }
 
         if ((cancelAmountSum + cancelRequestDto.getCancelAmount() == dataInfo.getAmount()) &&
                 (vatAmountSum + cancelRequestDto.getVat() != dataInfo.getVat())) {
-            cancelResponseDto.getErrorMessages().add("취소 금액은 모두 취소 되었으나 부가세가 남았습니다.");
+            cancelResponseDto.getErrorMessages().add(StaticValues.REMAIN_VAT_AFTER_ALL_CANCEL_AMOUNT);
             return;
         }
 
         if ((cancelAmountSum + cancelRequestDto.getCancelAmount() != dataInfo.getAmount()) &&
                 (vatAmountSum + cancelRequestDto.getVat() == dataInfo.getVat())) {
-            cancelResponseDto.getErrorMessages().add("부가세 금액은 모두 취소 되었으나 취소금액이 남았습니다.");
+            cancelResponseDto.getErrorMessages().add(StaticValues.REMAIN_CANCEL_AMOUNT_ALL_CANCEL_VAT);
             return;
         }
 

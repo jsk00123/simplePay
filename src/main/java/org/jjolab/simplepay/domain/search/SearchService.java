@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.jjolab.simplepay.domain.cardPostInfo.CardPostDto;
 import org.jjolab.simplepay.domain.cardPostInfo.CardPostInfo;
 import org.jjolab.simplepay.domain.cardPostInfo.CardPostInfoRepository;
+import org.jjolab.simplepay.domain.common.StaticValues;
 import org.jjolab.simplepay.utils.MaskingUtil;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ public class SearchService {
         CardPostInfo cardPostInfo = cardPostInfoRepository.findByUuid(searchRequestDto.getUuid());
 
         if (cardPostInfo == null) {
-            searchResponseDto.getErrorMessages().add("uuid 에 해당하는 정보를 찾을 수 없습니다.");
+            searchResponseDto.getErrorMessages().add(StaticValues.UUID_NOT_FOUND);
             return;
         }
 

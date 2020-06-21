@@ -5,6 +5,7 @@ import org.jjolab.simplepay.domain.cardPostInfo.CardPostDto;
 import org.jjolab.simplepay.domain.cardPostInfo.CardPostInfo;
 import org.jjolab.simplepay.domain.cardPostInfo.CardPostInfoRepository;
 import org.jjolab.simplepay.domain.common.PaymentType;
+import org.jjolab.simplepay.domain.common.StaticValues;
 import org.jjolab.simplepay.utils.CryptoUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,7 @@ public class PaymentService {
     @Transactional
     public void payment(PaymentRequestDto paymentRequestDto, String uuid, PaymentResponseDto paymentResponseDto) throws Exception {
         if (paymentCardInfo.contains(paymentRequestDto.getCdno())) {
-            paymentResponseDto.getErrorMessages().add("카드번호가 결제에 사용중 입니다.");
+            paymentResponseDto.getErrorMessages().add(StaticValues.ALREADY_CDNO_USE);
             return;
         }
 
@@ -34,7 +35,7 @@ public class PaymentService {
 
     private void paymentWithValidation(PaymentRequestDto paymentRequestDto, String uuid, PaymentResponseDto paymentResponseDto) throws Exception {
         if (paymentRequestDto.getVat() != null && paymentRequestDto.getPaymentAmount() < paymentRequestDto.getVat()) {
-            paymentResponseDto.getErrorMessages().add("부가가치세는 결제 금액 보다 클 수 없습니다.");
+            paymentResponseDto.getErrorMessages().add(StaticValues.VAT_BIGGER_AMOUNT_ERROR);
             return;
         }
 
