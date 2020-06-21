@@ -30,7 +30,7 @@ uuid       | 유니크 ID
 originUuid | 취소 시에 원결제의 유니크 ID
 postInfo   | 카드사에 전송하는 데이터
     
-## 문제해결 전략인
+## 문제해결 전략
 - controller 는 paymentController 하나에서 같이 수행
 - 호출에 사용되는 값들이 url 에 노출되지 않게 post 사
 - @Valid 사용으로 입력값 검증
